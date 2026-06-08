@@ -10,6 +10,14 @@ Este backlog organiza a implementação do Lead Finder em incrementos pequenos, 
 - Migrações Flyway versionadas quando houver mudança de banco.
 - `./mvnw test` executando com sucesso.
 
+## Fluxo De Branch E Commits
+
+- Criar uma branch para cada story antes de iniciar implementação.
+- Usar nomes como `story/1-1-lead-model` ou `story/5-3-generate-message`.
+- Fazer commits curtos dentro da branch, sempre em inglês simples e Conventional Commits.
+- Preferir commits por passo de TDD, por exemplo `test: add lead status tests`, `feat: update lead status`, `refactor: clean lead service`.
+- Manter a branch focada apenas na story atual.
+
 ## Epic 0: Base Técnica
 
 ### Story 0.1: Configurar Ambiente De Persistência

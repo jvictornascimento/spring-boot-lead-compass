@@ -1,14 +1,18 @@
 package com.jvictornascimento.leadCompass.leads.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
 
+import com.jvictornascimento.leadCompass.interactions.model.InteractionType;
+import com.jvictornascimento.leadCompass.interactions.repository.InteractionRepository;
 import com.jvictornascimento.leadCompass.leads.model.Lead;
 import com.jvictornascimento.leadCompass.leads.model.LeadStatus;
 import com.jvictornascimento.leadCompass.leads.repository.LeadRepository;
@@ -32,8 +36,12 @@ class LeadControllerTests {
 	@Autowired
 	private LeadRepository leadRepository;
 
+	@Autowired
+	private InteractionRepository interactionRepository;
+
 	@BeforeEach
 	void setUp() {
+		interactionRepository.deleteAll();
 		leadRepository.deleteAll();
 	}
 
@@ -94,6 +102,42 @@ class LeadControllerTests {
 	@Test
 	void returnsNotFoundWhenLeadDoesNotExist() throws Exception {
 		mockMvc.perform(get("/api/leads/{id}", 999L)
+						.with(user("admin")))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void updatesLeadStatusAndCreatesInteraction() throws Exception {
+		Lead lead = saveLead("Marcenaria Alfa", "marcenaria", "Campinas", "SP", LeadStatus.NEW, false, 85);
+
+		mockMvc.perform(patch("/api/leads/{id}/status", lead.getId())
+						.contentType("application/json")
+						.content("{\"status\":\"CONTACTED\"}")
+						.with(user("admin")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(lead.getId()))
+				.andExpect(jsonPath("$.status").value("CONTACTED"));
+
+		assertThat(leadRepository.findById(lead.getId()))
+				.isPresent()
+				.get()
+				.extracting(Lead::getStatus)
+				.isEqualTo(LeadStatus.CONTACTED);
+
+		assertThat(interactionRepository.findAll())
+				.singleElement()
+				.satisfies(interaction -> {
+					assertThat(interaction.getLead().getId()).isEqualTo(lead.getId());
+					assertThat(interaction.getType()).isEqualTo(InteractionType.STATUS_CHANGED);
+					assertThat(interaction.getDescription()).contains("NEW").contains("CONTACTED");
+				});
+	}
+
+	@Test
+	void returnsNotFoundWhenUpdatingMissingLeadStatus() throws Exception {
+		mockMvc.perform(patch("/api/leads/{id}/status", 999L)
+						.contentType("application/json")
+						.content("{\"status\":\"CONTACTED\"}")
 						.with(user("admin")))
 				.andExpect(status().isNotFound());
 	}

@@ -2,11 +2,13 @@ package com.jvictornascimento.leadCompass.leads.controller;
 
 import java.util.List;
 
+import com.jvictornascimento.leadCompass.leads.dto.LeadDetailResponse;
 import com.jvictornascimento.leadCompass.leads.dto.LeadResponse;
 import com.jvictornascimento.leadCompass.leads.model.LeadStatus;
 import com.jvictornascimento.leadCompass.leads.service.LeadService;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,5 +31,10 @@ public class LeadController {
 			@RequestParam(required = false) Boolean withoutWebsite,
 			@RequestParam(required = false) Integer minScore) {
 		return leadService.listLeads(city, niche, status, withoutWebsite, minScore);
+	}
+
+	@GetMapping("/{id}")
+	public LeadDetailResponse getLead(@PathVariable Long id) {
+		return leadService.getLead(id);
 	}
 }

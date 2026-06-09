@@ -3,6 +3,7 @@ package com.jvictornascimento.leadCompass.leads.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -113,6 +114,7 @@ class LeadControllerTests {
 		mockMvc.perform(patch("/api/leads/{id}/status", lead.getId())
 						.contentType("application/json")
 						.content("{\"status\":\"CONTACTED\"}")
+						.with(csrf())
 						.with(user("admin")))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value(lead.getId()))
@@ -138,6 +140,7 @@ class LeadControllerTests {
 		mockMvc.perform(patch("/api/leads/{id}/status", 999L)
 						.contentType("application/json")
 						.content("{\"status\":\"CONTACTED\"}")
+						.with(csrf())
 						.with(user("admin")))
 				.andExpect(status().isNotFound());
 	}

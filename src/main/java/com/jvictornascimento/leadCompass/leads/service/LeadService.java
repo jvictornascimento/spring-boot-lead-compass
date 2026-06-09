@@ -2,8 +2,12 @@ package com.jvictornascimento.leadCompass.leads.service;
 
 import java.util.List;
 
+import com.jvictornascimento.leadCompass.interactions.model.Interaction;
+import com.jvictornascimento.leadCompass.interactions.model.InteractionType;
+import com.jvictornascimento.leadCompass.interactions.repository.InteractionRepository;
 import com.jvictornascimento.leadCompass.leads.dto.LeadDetailResponse;
 import com.jvictornascimento.leadCompass.leads.dto.LeadResponse;
+import com.jvictornascimento.leadCompass.leads.dto.UpdateLeadStatusRequest;
 import com.jvictornascimento.leadCompass.leads.exception.LeadNotFoundException;
 import com.jvictornascimento.leadCompass.leads.mapper.LeadMapper;
 import com.jvictornascimento.leadCompass.leads.model.Lead;
@@ -22,10 +26,15 @@ public class LeadService {
 
 	private final LeadRepository leadRepository;
 	private final LeadMapper leadMapper;
+	private final InteractionRepository interactionRepository;
 
-	public LeadService(LeadRepository leadRepository, LeadMapper leadMapper) {
+	public LeadService(
+			LeadRepository leadRepository,
+			LeadMapper leadMapper,
+			InteractionRepository interactionRepository) {
 		this.leadRepository = leadRepository;
 		this.leadMapper = leadMapper;
+		this.interactionRepository = interactionRepository;
 	}
 
 	@Transactional(readOnly = true)
@@ -45,6 +54,23 @@ public class LeadService {
 		return leadRepository.findById(id)
 				.map(leadMapper::toDetailResponse)
 				.orElseThrow(() -> new LeadNotFoundException(id));
+	}
+
+	@Transactional
+	public LeadResponse updateStatus(Long id, UpdateLeadStatusRequest request) {
+		Lead lead = leadRepository.findById(id)
+				.orElseThrow(() -> new LeadNotFoundException(id));
+		LeadStatus previousStatus = lead.getStatus();
+
+		lead.setStatus(request.status());
+
+		Interaction interaction = new Interaction();
+		interaction.setLead(lead);
+		interaction.setType(InteractionType.STATUS_CHANGED);
+		interaction.setDescription("Status changed from " + previousStatus + " to " + request.status());
+		interactionRepository.save(interaction);
+
+		return leadMapper.toResponse(lead);
 	}
 
 	private Specification<Lead> filterBy(

@@ -74,6 +74,30 @@ class LeadControllerTests {
 				.andExpect(jsonPath("$[0].opportunityScore").value(85));
 	}
 
+	@Test
+	void getsLeadByIdWithDiagnosticsAndInteractions() throws Exception {
+		Lead lead = saveLead("Marcenaria Alfa", "marcenaria", "Campinas", "SP", LeadStatus.NEW, false, 85);
+
+		mockMvc.perform(get("/api/leads/{id}", lead.getId())
+						.with(user("admin")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(lead.getId()))
+				.andExpect(jsonPath("$.businessName").value("Marcenaria Alfa"))
+				.andExpect(jsonPath("$.niche").value("marcenaria"))
+				.andExpect(jsonPath("$.city").value("Campinas"))
+				.andExpect(jsonPath("$.state").value("SP"))
+				.andExpect(jsonPath("$.status").value("NEW"))
+				.andExpect(jsonPath("$.diagnostics", hasSize(0)))
+				.andExpect(jsonPath("$.interactions", hasSize(0)));
+	}
+
+	@Test
+	void returnsNotFoundWhenLeadDoesNotExist() throws Exception {
+		mockMvc.perform(get("/api/leads/{id}", 999L)
+						.with(user("admin")))
+				.andExpect(status().isNotFound());
+	}
+
 	private Lead saveLead(
 			String businessName,
 			String niche,

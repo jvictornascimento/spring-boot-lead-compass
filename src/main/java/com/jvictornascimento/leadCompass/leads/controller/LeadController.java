@@ -4,11 +4,16 @@ import java.util.List;
 
 import com.jvictornascimento.leadCompass.leads.dto.LeadDetailResponse;
 import com.jvictornascimento.leadCompass.leads.dto.LeadResponse;
+import com.jvictornascimento.leadCompass.leads.dto.UpdateLeadStatusRequest;
 import com.jvictornascimento.leadCompass.leads.model.LeadStatus;
 import com.jvictornascimento.leadCompass.leads.service.LeadService;
 
+import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,5 +41,12 @@ public class LeadController {
 	@GetMapping("/{id}")
 	public LeadDetailResponse getLead(@PathVariable Long id) {
 		return leadService.getLead(id);
+	}
+
+	@PatchMapping("/{id}/status")
+	public LeadResponse updateStatus(
+			@PathVariable Long id,
+			@Valid @RequestBody UpdateLeadStatusRequest request) {
+		return leadService.updateStatus(id, request);
 	}
 }

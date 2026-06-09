@@ -2,7 +2,9 @@ package com.jvictornascimento.leadCompass.leads.service;
 
 import java.util.List;
 
+import com.jvictornascimento.leadCompass.leads.dto.LeadDetailResponse;
 import com.jvictornascimento.leadCompass.leads.dto.LeadResponse;
+import com.jvictornascimento.leadCompass.leads.exception.LeadNotFoundException;
 import com.jvictornascimento.leadCompass.leads.mapper.LeadMapper;
 import com.jvictornascimento.leadCompass.leads.model.Lead;
 import com.jvictornascimento.leadCompass.leads.model.LeadStatus;
@@ -36,6 +38,13 @@ public class LeadService {
 		return leadRepository.findAll(filterBy(city, niche, status, withoutWebsite, minScore)).stream()
 				.map(leadMapper::toResponse)
 				.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public LeadDetailResponse getLead(Long id) {
+		return leadRepository.findById(id)
+				.map(leadMapper::toDetailResponse)
+				.orElseThrow(() -> new LeadNotFoundException(id));
 	}
 
 	private Specification<Lead> filterBy(
